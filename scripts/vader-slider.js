@@ -1,21 +1,18 @@
 var vaderSliderModule = (function() {
-  var interval = 1500;
-  var random_display = 0;
-  var imageDir = "images/";
+
+  var vaderSliderDefaultOptions = {
+    interval: 1500,
+    random_display: 0,
+    imageArrayPath: new Array()
+  };  
+  var imageArray = new Array();
+  var vaderSliderOptions = {};
   var imageNum = 0;
   var totalImages = 0;
-  var imageArray = new Array();
   var timerId;
 
   function clearInterval() {
     clearInterval(timerId);
-  }
-
-  function imagesArrayGeneration() {
-    for (i = 1; i < 9; i++) { 
-      imageArray[imageNum++] = new imageItem(imageDir + 'slider' + i + '.jpg');
-    }
-    totalImages = imageArray.length;
   };
 
   function imageItem(image_location) {
@@ -23,7 +20,13 @@ var vaderSliderModule = (function() {
     this.image_item.src = image_location;
   };
 
-  function get_ImageItemLocation(imageObj) {
+  function imageArrayGeneration() {
+    for (i = 0; i < vaderSliderOptions.imageArrayPath.length; i++) { 
+      imageArray[imageNum++] = new imageItem(vaderSliderOptions.imageArrayPath[i]);
+    }
+  };
+
+  function getImageItemLocation(imageObj) {
     return(imageObj.image_item.src)
   };
 
@@ -33,18 +36,18 @@ var vaderSliderModule = (function() {
   };
 
   function getNextImage() {
-    if (random_display) {
+    if (vaderSliderOptions.random_display) {
       imageNum = randNum(0, totalImages - 1);
     } else {
       imageNum = (imageNum + 1) % totalImages;
     }
-    var new_image = get_ImageItemLocation(imageArray[imageNum]);
+    var new_image = getImageItemLocation(imageArray[imageNum]);
     return(new_image);
   };
 
   function getPrevImage() {
     imageNum = (imageNum - 1) % totalImages;
-    var new_image = get_ImageItemLocation(imageArray[imageNum]);
+    var new_image = getImageItemLocation(imageArray[imageNum]);
     return(new_image);
   };
 
@@ -58,26 +61,34 @@ var vaderSliderModule = (function() {
       var new_image = getNextImage();
       document[place].src = new_image;
       timerId = setTimeout(switchImage, 2000);
-    }, interval);
+    }, vaderSliderOptions.interval);
   };
 
-  function vaderSliderStart(container) {
-    imagesArrayGeneration();
-
-  	var vaderSliderNode = document.getElementById(container);
-    var imageContainer = makeImageContainer();
-    insertAfter(vaderSliderNode, imageContainer);
-    switchImageTimer(imageContainer.name);
+  function vaderSliderStart(container, params) {
+    makeImageContainer(container);
+    extendParams(params);
+    imageArrayGeneration();
   };
 
-  function makeImageContainer() {
+  function extendParams(params){
+    for(var key in vaderSliderDefaultOptions)
+      if(params.hasOwnProperty(key))
+        vaderSliderOptions[key] = params[key];
+      else
+        vaderSliderOptions[key] = vaderSliderDefaultOptions[key];
+    totalImages = vaderSliderOptions.imageArrayPath.length;
+  };
+
+  function makeImageContainer(container) {
     var sliderImage = document.createElement("img");
     sliderImage.src = 'images/slider1.jpg';
     sliderImage.name = 'vaderSliderImage';
     sliderImage.style.width = 500;
     sliderImage.style.height = 375; 
     sliderImage.className += 'vader-slider-image';
-    return sliderImage;
+    var vaderSliderNode = document.getElementById(container);
+    insertAfter(vaderSliderNode, sliderImage);
+    switchImageTimer(sliderImage.name);
   };
 
   function insertAfter(referenceNode, newNode) {
